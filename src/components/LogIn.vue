@@ -1,0 +1,162 @@
+<template>
+  <div class="login">
+    <register v-on:registered="registered" v-if="register" :user_name="username" />
+    <forgot v-on:reset="reset" v-else-if="forgot" :user_name="username" />
+    <v-row v-else align="center" justify="center" fluid>
+      <v-col cols="10" sm="10" md="8 " lg="6" xl="4">
+        <v-card class="elevation-12">
+          <v-toolbar color="primary" dark flat>
+            <v-toolbar-title>تسجيل الدخول</v-toolbar-title>
+            <v-spacer></v-spacer>
+          </v-toolbar>
+          <v-card-text>
+            <v-text-field prepend-icon="mdi-email" label="بريدك الالكتروني" type="text" v-model="username"></v-text-field>
+            <v-text-field prepend-icon="mdi-lock" type="password" label="كلمة السر" :error-messages="pwdMsg" v-model="pwd"></v-text-field>
+            <v-btn color="success" class="mr-4" @click="logIn">تسجيل الدخول</v-btn>
+            <v-btn color="primary" class="mr-4" @click="forgot=!forgot">نسيت كلمة السر</v-btn>
+            <v-btn color="primary" class="mr-4" @click="register=!register">إنشاء حساب</v-btn>
+            <v-text-field
+                v-if="verify"
+                label="رمز التوثيق"
+                :messages="codeMsg"
+                :rules="codeErr"
+                v-model="code"
+              ></v-text-field>
+              <v-btn color="primary" v-if="verify" @click="verifyCode">وثق الحساب</v-btn>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+  </div>
+</template>
+
+<script>
+// import $ from "jquery";
+import axios from "axios";
+import Register from "../components/Register.vue";
+import Forgot from "../components/Forgot.vue";
+export default {
+  name: "LogIn",
+  components: {
+    Register,
+    Forgot
+  },
+  data() {
+    return {
+      username: "",
+      pwd: "",
+      register: false,
+      forgot: false,
+      pwdMsg: "",
+      codeErr: [value => !!value],
+      code: null,
+      codeMsg: "تم إرسال رمز التوثيق على بريدك",
+      verify: false,
+      formData: new FormData()
+    };
+  },
+  methods: {
+    registered(res) {
+      this.username = res.username;
+      this.pwdMsg = res.forgotMsg;
+      console.log(res)
+      this.register = false;
+    },
+    reset(username) {
+      this.username = username;
+      this.register = false;
+      this.pwdMsg = "قم بإدخال كلمة السر الجديدة";
+    },
+    logIn() {
+      this.formData.append("username", this.username);
+      this.formData.append("pwd", this.pwd);
+      axios
+        .post("login.php", this.formData, {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        })
+        .then(res => {
+          console.log("SUCCESS!!");
+          console.log(res.data);
+          if (res.data == 1) this.$emit("loggedIn", true);
+          if (res.data == -1) this.pwdMsg = "كلمة السر غير صحيحة";
+          else this.pwdMsg = "";
+          if(res.data == 2) this.verify = true
+        })
+        .catch(res => {
+          console.log("FAILURE!!");
+          console.log(res);
+        });
+    },
+    verifyCode() {
+      this.formData.append("username", this.username);
+      this.formData.append("code", this.code);
+      axios
+        .post("verify.php", this.formData, {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        })
+        .then(res =>{
+          console.log(res.data);
+          if (res.data == 1)
+            this.verify = false;
+            this.logIn()
+        })
+        .catch(function(res) {
+          console.log("FAILURE!! " + res);
+          console.log(res);
+        });
+    }
+  }
+};
+</script>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped>
+
+
+.form-group {
+  width: 80%;
+  margin: auto;
+  padding: 15px;
+  margin-top: 2rem;
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  padding-bottom: 2rem;
+}
+
+.form-control {
+  width: 80%;
+  margin: auto;
+  text-align: center;
+  margin: 2px;
+}
+img {
+  display: block;
+  margin: auto;
+}
+.row {
+  /* max-width: 80%; */
+  margin: auto;
+}
+.card {
+  margin: auto;
+}
+h3 {
+  margin: 40px 0 0;
+}
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+li {
+  display: inline-block;
+  margin: 0 10px;
+}
+a {
+  color: #42b983;
+}
+</style>
