@@ -2,27 +2,26 @@
   <div id="app">
     <v-app>
       <v-row align="center" justify="center">
-        <v-col cols="6" sm="6" md="6" lg="2" xl="2">
+        <v-col cols="12" xs="6" sm="8" md="10">
           <v-img alt="SaudiUSA logo" :src="require('./assets/logo.png')" />
         </v-col>
       </v-row>
       <router-view />
     </v-app>
-    <br><br><br>
+    <br /><br /><br />
   </div>
 </template>
 
 <script>
-// import Home from "./views/Home.vue";
-// import router from "@/router.js";
 export default {
   name: "App",
-  // components: {
-  //   Home
-  // }
-  mounted(){
-    if (window.location.protocol !== 'https:' && process.env.NODE_ENV === 'production') window.location.protocol = 'https:'
-  }
+  mounted() {
+    if (
+      window.location.protocol !== "https:" &&
+      process.env.NODE_ENV === "production"
+    )
+      window.location.protocol = "https:";
+  },
 };
 </script>
 
@@ -37,14 +36,28 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
 }
-@font-face {
+.v-tab {
+  padding: 0;
+}
+.v-btn {
+  padding: 2%;
+  margin: 2%;
+  max-height: 100%;
+}
+.row {
+  max-width: 95%;
+  margin: auto;
+}
+/* .v-toolbar__content {
+  max-height: 100%;
+} */
+/* @font-face {
   font-family: "DriodKufi";
   src: url("assets/Kufi.ttf");
 }
 @font-face {
   font-family: "DriodKufiBold";
   src: url("assets/Kufi_Bold.ttf");
-}
+} */
 </style>

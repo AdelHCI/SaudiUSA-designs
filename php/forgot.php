@@ -23,4 +23,3 @@ include "sendverify.php";
 }
 else echo 0;
 $db = null;
-?>

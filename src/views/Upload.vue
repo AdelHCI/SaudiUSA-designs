@@ -1,174 +1,304 @@
 <template>
   <div class="upload">
-    <LogIn v-on:loggedIn="loggedIn=true" v-if="!loggedIn" />
-    <v-row v-else align="center" justify="center" fluid>
-      <v-col cols="10" sm="10" md="8 " lg="6" xl="4">
-        <v-card class="elevation-12">
-          <v-toolbar color="primary" dark flat>
-            <v-toolbar-title>بيانات الملف</v-toolbar-title>
-            <v-spacer></v-spacer>
-          </v-toolbar>
-          <v-card-text>
-            <v-text-field label="طول الصورة" type="text" v-model="height"></v-text-field>
-            <v-text-field label="عرض الصورة" type="text" v-model="width"></v-text-field>
-            <v-text-field label="موقع النص بالعرض" type="text" v-model="x"></v-text-field>
-            <v-text-field label="موقع النص بالطول" type="text" v-model="y"></v-text-field>
-            <v-text-field label="قيمة اللون الأحمر" type="text" v-model="r"></v-text-field>
-            <v-text-field label="قيمة اللون الأخضر" type="text" v-model="g"></v-text-field>
-            <v-text-field label="قيمة اللون الأزرق" type="text" v-model="b"></v-text-field>
-            <v-file-input accept="image/jpeg, image/png" chips :label="fileLabel" v-model="file"></v-file-input>
-            <!-- <input
-            type="file"
-            ref="file"
-            id="image-file"
-            accept="image/jpeg, image/png"
-            class="custom-file-input"
-            @change="saveImg()"
-            />-->
-            <v-btn color="success" class="mr-4" @click="uploadImg">Upload</v-btn>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-    <br />
-    <img id="display" />
+    <v-btn
+      v-show="loggedIn"
+      color="error"
+      elevation="20"
+      fixed
+      dark
+      style="z-index: 20"
+      top
+      left
+      @click="logout"
+    >
+      تسجيل خروج
+    </v-btn>
+    <v-btn
+      v-show="!loggedIn"
+      color="primary"
+      elevation="20"
+      fixed
+      dark
+      style="z-index: 20"
+      top
+      left
+      @click="$router.push('/')"
+    >
+      واجهة التصاميم
+    </v-btn>
+    <LogIn v-on:loggedIn="login" v-if="!loggedIn" />
+    <v-col v-else align="center" justify="center" fluid>
+      <v-row>
+        <v-tabs v-model="tab" show-arrows centered center-active>
+          <v-tab @click="clear">إضافة تصميم</v-tab>
+          <template v-if="admin">
+            <v-tab>تعديل تصميم</v-tab>
+            <v-tab>حذف تصميم</v-tab>
+            <v-tab>الصلاحيات</v-tab>
+          </template>
+        </v-tabs>
+      </v-row>
+      <v-tabs-items v-model="tab">
+        <v-tab-item>
+          <UploadForm
+            :upload="true"
+            :currImg="currImg"
+            :types="types"
+            :jsonfiles="jsonfiles"
+            v-on:dialogMsg="dialogMsg"
+          />
+        </v-tab-item>
+        <v-tab-item>
+          <UploadForm
+            :currImg="currImg"
+            :upload="false"
+            v-show="picked"
+            :file="file"
+            :types="types"
+            :jsonfiles="jsonfiles"
+            :picked="picked"
+            v-on:dialogMsg="dialogMsg"
+            v-on:unpick="clear"
+          />
+          <Preview v-show="picked" :src="currImg.src" />
+          <Designs
+            :edit="true"
+            v-show="!picked"
+            :imgs="jsonfiles"
+            :types="types"
+            :currType="currType"
+            v-on:selected="selected"
+          />
+        </v-tab-item>
+        <v-tab-item>
+          <Designs
+            :remove="true"
+            :imgs="jsonfiles"
+            :types="types"
+            :currType="currType"
+            v-on:selected="selected"
+          />
+        </v-tab-item>
+        <v-tab-item>
+          <Users :currUser="username" :admin="userrole" v-on:check="check" />
+        </v-tab-item>
+      </v-tabs-items>
+    </v-col>
+    <v-dialog v-model="dialog" max-width="290">
+      <v-card>
+        <v-card-title class="justify-center headline">
+          {{ dialogMessage }}
+        </v-card-title>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script>
-// import $ from "jquery";
 import axios from "axios";
-// const json =require("../files.json")
-// console.log(require("../files.json"))
 import LogIn from "../components/LogIn.vue";
+import Designs from "../components/Designs.vue";
+import UploadForm from "../components/UploadForm.vue";
+import Preview from "../components/Preview.vue";
+import Users from "../components/Users.vue";
 export default {
   name: "Upload",
   components: {
-    LogIn
+    LogIn,
+    Designs,
+    Users,
+    UploadForm,
+    Preview,
   },
   data() {
     return {
-      height: null,
-      width: null,
-      y: null,
-      x: null,
-      r: null,
-      g: null,
-      b: null,
-      fileLabel: "اختر ملف",
-      file: null,
-      formData: new FormData(),
+      tab: null,
+      admin: null,
+      dialogMessage: "",
+      dialog: false,
       loggedIn: false,
-      jsonfiles: null
+      currImg: {
+        name: "",
+        src: null,
+        width: null,
+        height: null,
+        type: null,
+        textX: null,
+        textY: null,
+        r: null,
+        g: null,
+        b: null,
+      },
+      jsonfiles: [],
+      types: [],
+      file: null,
+      username: null,
+      userrole: null,
+      currType: "الكل",
     };
   },
   mounted() {
     this.check();
+    axios.get("files.json").then((response) => {
+      this.jsonfiles = response.data;
+    });
+    axios.get("types.json").then((response) => {
+      this.types = response.data;
+    });
   },
   methods: {
+    logout() {
+      axios
+        .post("logout.php")
+        .then((res) => {
+          console.log(res);
+          this.dialogMessage = "تم تسجيل الخروج";
+          this.dialog = true;
+          this.check();
+        })
+        .catch((res) => {
+          console.log(res);
+        });
+    },
+    clear() {
+      this.currType = "الكل";
+      this.picked = false;
+      this.currImg = {
+        name: "",
+        src: null,
+        width: null,
+        height: null,
+        type: null,
+        textX: null,
+        textY: null,
+        r: null,
+        g: null,
+        b: null,
+      };
+      this.file = null;
+    },
+    dialogMsg(res) {
+      this.clear();
+      this.dialogMessage = res.msg;
+      this.dialog = true;
+      console.console.log(res);
+      if (res.jsonfiles) this.jsonfiles = res.jsonfiles;
+      if (res.types) this.types = res.types;
+      this.currType = "الكل";
+    },
+    selected(res) {
+      if (res.op == "remove") {
+        delete this.jsonfiles[res.name];
+        this.deleteImg();
+      } else if (res.op == "edit") {
+        this.currImg = this.jsonfiles[res.name];
+        axios.get(this.currImg.src).then((response) => {
+          this.file = new File([response.data], this.currImg.name, {
+            type: "image/png",
+          });
+        });
+        this.picked = true;
+      }
+    },
+    login(res) {
+      this.loggedIn = res[0];
+      this.username = res[1][1];
+      this.userrole = res[1][0];
+      this.admin = this.userrole == "مشرف";
+    },
     check() {
       axios
         .post("check.php", this.formData, {
           headers: {
-            "Content-Type": "multipart/form-data"
-          }
+            "Content-Type": "multipart/form-data",
+          },
         })
-        .then(res => {
-          console.log(res.data);
-          this.loggedIn = parseInt(res.data) == 1;
+        .then((res) => {
+          this.loggedIn = parseInt(res.data) != -1;
+          this.username = res.data[1];
+          this.userrole = res.data[0];
+          this.admin = this.userrole == "مشرف";
         })
-        .catch(res => {
+        .catch((res) => {
           console.log(res);
         });
     },
-    uploadImg() {
-      axios.get("files.json").then(response => {
-        this.jsonfiles = response.data;
-      });
-      this.formData.append("file", this.file);
-      this.jsonfiles.push({
-        name: this.file.name,
-        src: "./uploads/" + this.file.name,
-        width: this.width,
-        height: this.height,
-        textX: this.x,
-        textY: this.y,
-        r: this.r,
-        g: this.g,
-        b: this.b
-      });
+    deleteImg() {
+      this.types = this.types.filter(
+        (k) =>
+          Object.values(this.jsonfiles).filter((f) => f.type == k).length > 0
+      );
+      this.formData = new FormData();
       this.formData.append("json", JSON.stringify(this.jsonfiles));
-      console.log(this.jsonfiles);
+      this.formData.append("types", JSON.stringify(this.types));
+      let self = this;
       axios
         .post("upload.php", this.formData, {
           headers: {
-            "Content-Type": "multipart/form-data"
-          }
+            "Content-Type": "multipart/form-data",
+          },
         })
         .then(function(res) {
-          console.log("SUCCESS!!");
+          self.dialog = true;
+          self.dialogMessage = "تم حذف التصميم";
+          self.currType = "الكل";
           console.log(res);
         })
         .catch(function(res) {
-          console.log("FAILURE!! " + res);
+          self.dialog = true;
+          self.dialogMessage = "فشلت عملية الحذف";
           console.log(res);
         });
-    }
-  }
+    },
+    // uploadImg() {
+    //   if (!this.valid) {
+    //     document
+    //       .querySelector(".v-messages.error--text:first-of-type")
+    //       .scrollIntoView();
+    //     return;
+    //   }
+    //   this.loading = true;
+    //   this.formData.append("file", this.file);
+    //   this.currImg.name = this.file.name;
+    //   this.currImg.src = "./uploads/" + this.file.name;
+    //   this.jsonfiles[this.currImg.name] = this.currImg;
+    //   if (!this.types.find((t) => t != this.type)) {
+    //     this.types.push(this.type);
+    //   }
+
+    //   this.formData.append("json", JSON.stringify(this.jsonfiles));
+    //   this.formData.append("types", JSON.stringify(this.types));
+    //   let self = this;
+    //   axios
+    //     .post("upload.php", this.formData, {
+    //       headers: {
+    //         "Content-Type": "multipart/form-data",
+    //       },
+    //     })
+    //     .then(function (res) {
+    //       self.loading = false;
+    //       self.dialog = true;
+    //       self.dialogMessage = "تم رفع/تعديل الملف";
+    //       console.log(res);
+    //     })
+    //     .catch(function (res) {
+    //       self.fail = true;
+    //       self.dialog = true;
+    //       self.dialogMessage = "فشلت عملية الرفع/التعديل";
+    //       console.log(res);
+    //     });
+    // },
+  },
 };
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-@font-face {
-  font-family: "DriodKufi";
-  src: url("../assets/Kufi.ttf");
-}
-@font-face {
-  font-family: "DriodKufiBold";
-  src: url("../assets/Kufi_Bold.ttf");
-}
-
-.form-group {
-  width: 80%;
-  margin: auto;
-  padding: 15px;
-  margin-top: 2rem;
-  display: flex;
-  flex-flow: column;
-  align-items: center;
-  padding-bottom: 2rem;
-}
-
-.form-control {
-  width: 80%;
-  margin: auto;
-  text-align: center;
-  margin: 2px;
-}
 img {
   display: block;
   margin: auto;
 }
-.row {
-  max-width: 80%;
-  margin: auto;
-}
 .card {
   margin: auto;
-}
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
 }
 </style>

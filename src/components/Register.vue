@@ -50,7 +50,6 @@
 </template>
 
 <script>
-import $ from "jquery";
 import axios from "axios";
 export default {
   name: "Upload",
@@ -95,7 +94,6 @@ export default {
         console.log("invalid inputs");
         return;
       }
-      $(".btn-success").prop("disabled", false);
       this.formData.append("username", this.username);
       this.formData.append("pwd", this.pwd);
       axios

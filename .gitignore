@@ -21,3 +21,10 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+
+# json files
+files.json
+types.json
+
+# php files
+/php/initDB.php

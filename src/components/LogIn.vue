@@ -1,6 +1,10 @@
 <template>
   <div class="login">
-    <register v-on:registered="registered" v-if="register" :user_name="username" />
+    <register
+      v-on:registered="registered"
+      v-if="register"
+      :user_name="username"
+    />
     <forgot v-on:reset="reset" v-else-if="forgot" :user_name="username" />
     <v-row v-else align="center" justify="center" fluid>
       <v-col cols="10" sm="10" md="8 " lg="6" xl="4">
@@ -10,19 +14,38 @@
             <v-spacer></v-spacer>
           </v-toolbar>
           <v-card-text>
-            <v-text-field prepend-icon="mdi-email" label="بريدك الالكتروني" type="text" v-model="username"></v-text-field>
-            <v-text-field prepend-icon="mdi-lock" type="password" label="كلمة السر" :error-messages="pwdMsg" v-model="pwd"></v-text-field>
-            <v-btn color="success" class="mr-4" @click="logIn">تسجيل الدخول</v-btn>
-            <v-btn color="primary" class="mr-4" @click="forgot=!forgot">نسيت كلمة السر</v-btn>
-            <v-btn color="primary" class="mr-4" @click="register=!register">إنشاء حساب</v-btn>
             <v-text-field
-                v-if="verify"
-                label="رمز التوثيق"
-                :messages="codeMsg"
-                :rules="codeErr"
-                v-model="code"
-              ></v-text-field>
-              <v-btn color="primary" v-if="verify" @click="verifyCode">وثق الحساب</v-btn>
+              :prepend-icon="mdiEmail"
+              label="بريدك الالكتروني"
+              type="text"
+              v-model="username"
+            ></v-text-field>
+            <v-text-field
+              :prepend-icon="mdiLock"
+              type="password"
+              label="كلمة السر"
+              :error-messages="pwdMsg"
+              v-model="pwd"
+            ></v-text-field>
+            <v-btn color="success" class="mr-4" @click="logIn"
+              >تسجيل الدخول</v-btn
+            >
+            <v-btn color="primary" class="mr-4" @click="forgot = !forgot"
+              >نسيت كلمة السر</v-btn
+            >
+            <v-btn color="primary" class="mr-4" @click="register = !register"
+              >إنشاء حساب</v-btn
+            >
+            <v-text-field
+              v-if="verify"
+              label="رمز التوثيق"
+              :messages="codeMsg"
+              :rules="codeErr"
+              v-model="code"
+            ></v-text-field>
+            <v-btn color="primary" v-if="verify" @click="verifyCode"
+              >وثق الحساب</v-btn
+            >
           </v-card-text>
         </v-card>
       </v-col>
@@ -31,7 +54,7 @@
 </template>
 
 <script>
-// import $ from "jquery";
+import { mdiEmail, mdiLock } from "@mdi/js";
 import axios from "axios";
 import Register from "../components/Register.vue";
 import Forgot from "../components/Forgot.vue";
@@ -39,27 +62,28 @@ export default {
   name: "LogIn",
   components: {
     Register,
-    Forgot
+    Forgot,
   },
   data() {
     return {
       username: "",
+      mdiEmail: mdiEmail,
+      mdiLock: mdiLock,
       pwd: "",
       register: false,
       forgot: false,
       pwdMsg: "",
-      codeErr: [value => !!value],
+      codeErr: [(value) => !!value],
       code: null,
       codeMsg: "تم إرسال رمز التوثيق على بريدك",
       verify: false,
-      formData: new FormData()
+      formData: new FormData(),
     };
   },
   methods: {
     registered(res) {
       this.username = res.username;
       this.pwdMsg = res.forgotMsg;
-      console.log(res)
       this.register = false;
     },
     reset(username) {
@@ -73,19 +97,16 @@ export default {
       axios
         .post("login.php", this.formData, {
           headers: {
-            "Content-Type": "multipart/form-data"
-          }
+            "Content-Type": "multipart/form-data",
+          },
         })
-        .then(res => {
-          console.log("SUCCESS!!");
-          console.log(res.data);
-          if (res.data == 1) this.$emit("loggedIn", true);
+        .then((res) => {
           if (res.data == -1) this.pwdMsg = "كلمة السر غير صحيحة";
-          else this.pwdMsg = "";
-          if(res.data == 2) this.verify = true
+          if (res.data == -2) this.pwdMsg = "بريدك الالكتروني غير صحيحة";
+          else if (res.data == 2) this.verify = true;
+          else this.$emit("loggedIn", [true, res.data]);
         })
-        .catch(res => {
-          console.log("FAILURE!!");
+        .catch((res) => {
           console.log(res);
         });
     },
@@ -95,28 +116,25 @@ export default {
       axios
         .post("verify.php", this.formData, {
           headers: {
-            "Content-Type": "multipart/form-data"
-          }
+            "Content-Type": "multipart/form-data",
+          },
         })
-        .then(res =>{
-          console.log(res.data);
-          if (res.data == 1)
-            this.verify = false;
-            this.logIn()
+        .then((res) => {
+          console.log(res);
+          this.verify = res.data != 1;
+          this.logIn();
         })
         .catch(function(res) {
           console.log("FAILURE!! " + res);
           console.log(res);
         });
-    }
-  }
+    },
+  },
 };
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-
-
 .form-group {
   width: 80%;
   margin: auto;
@@ -155,8 +173,5 @@ ul {
 li {
   display: inline-block;
   margin: 0 10px;
-}
-a {
-  color: #42b983;
 }
 </style>
