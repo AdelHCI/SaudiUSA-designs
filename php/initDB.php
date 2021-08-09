@@ -7,6 +7,8 @@
 //     }
 // }
 
+
+
 // $db = new MyDB();
 // $db->exec('DROP TABLE USERS');
 // $db->exec('CREATE TABLE USERS (USERNAME STRING, PASSWORD STRING, VERIFIED BOOLEAN CHECK (VERIFIED IN (0,1)))');
