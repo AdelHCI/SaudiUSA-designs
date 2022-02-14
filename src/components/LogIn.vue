@@ -88,7 +88,7 @@ export default {
     },
     reset(username) {
       this.username = username;
-      this.register = false;
+      this.forgot = false;
       this.pwdMsg = "قم بإدخال كلمة السر الجديدة";
     },
     logIn() {
@@ -102,7 +102,7 @@ export default {
         })
         .then((res) => {
           if (res.data == -1) this.pwdMsg = "كلمة السر غير صحيحة";
-          if (res.data == -2) this.pwdMsg = "بريدك الالكتروني غير صحيحة";
+          else if (res.data == 0) this.pwdMsg = "بريدك الالكتروني غير صحيح";
           else if (res.data == 2) this.verify = true;
           else this.$emit("loggedIn", [true, res.data]);
         })

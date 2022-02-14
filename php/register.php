@@ -13,7 +13,7 @@ if (preg_match("/[a-zA-Z]+.*[a-zA-Z]*@saudiusa.com/", $_POST["username"])) {
         echo -1;
         exit();
     } else {
-        $insert = $db->prepare("INSERT INTO USERS (USERNAME,PASSWORD,VERIFIED) VALUES (:username,:pwd,0,'Editor')");
+        $insert = $db->prepare('INSERT INTO USERS (USERNAME,PASSWORD,VERIFIED,USER_ROLE) VALUES (:username,:pwd,0,"محرر")');
         $insert->bindParam(':username', $_POST["username"], SQLITE3_TEXT);
         $insert->bindParam(':pwd', sha1($_POST["pwd"]), SQLITE3_TEXT);
         $ret = $insert->execute();

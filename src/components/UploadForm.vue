@@ -38,24 +38,38 @@
               type="text"
               v-model="currImg.textY"
             ></v-text-field>
-            <v-text-field
-              :rules="RGBrules"
-              label="قيمة اللون الأحمر"
-              type="text"
-              v-model="currImg.r"
-            ></v-text-field>
-            <v-text-field
-              :rules="RGBrules"
-              label="قيمة اللون الأخضر"
-              type="text"
-              v-model="currImg.g"
-            ></v-text-field>
-            <v-text-field
-              :rules="RGBrules"
-              label="قيمة اللون الأزرق"
-              type="text"
-              v-model="currImg.b"
-            ></v-text-field>
+            <v-row
+              ><v-col xs="12" sm="12" md="6" lg="6" xl="6"
+                ><v-text-field
+                  :rules="RGBrules"
+                  label="قيمة اللون الأحمر للنص"
+                  type="text"
+                  v-model="currImg.r"
+                ></v-text-field>
+                <v-text-field
+                  :rules="RGBrules"
+                  label="قيمة اللون الأخضر للنص"
+                  type="text"
+                  v-model="currImg.g"
+                ></v-text-field>
+                <v-text-field
+                  :rules="RGBrules"
+                  label="قيمة اللون الأزرق للنص"
+                  type="text"
+                  v-model="currImg.b"
+                ></v-text-field>
+                <v-text-field
+                  :rules="Arules"
+                  label="قيمة التباين للنص"
+                  type="text"
+                  v-model="currImg.a"
+                ></v-text-field></v-col
+              ><v-col xs="12" sm="12" md="6" lg="6" xl="6"
+                ><v-color-picker
+                  v-model="color"
+                  hide-inputs
+                ></v-color-picker></v-col
+            ></v-row>
             <v-file-input
               :rules="filesRules"
               accept="image/jpeg, image/png"
@@ -119,11 +133,36 @@ export default {
           parseInt(value) < 0 ||
           "قيم اللون بين 0 و 255",
       ],
+      Arules: [
+        (value) =>
+          !!value ||
+          parseFloat(value) > 1 ||
+          parseFloat(value) < 0 ||
+          "قيم اللون بين 0 و 1",
+      ],
       fileLabel: "اختر ملف",
       formData: new FormData(),
       loading: false,
       progress: 0,
     };
+  },
+  computed: {
+    color: {
+      get() {
+        return {
+          r: this.currImg.r,
+          b: this.currImg.b,
+          g: this.currImg.g,
+          a: this.currImg.a,
+        };
+      },
+      set(v) {
+        this.currImg.r = v.r;
+        this.currImg.b = v.b;
+        this.currImg.g = v.g;
+        this.currImg.a = v.a;
+      },
+    },
   },
   methods: {
     uploadImg() {
@@ -135,6 +174,7 @@ export default {
       }
       this.loading = true;
       this.formData.append("file", this.file);
+      console.log(this.file);
       this.currImg.name = this.file.name;
       this.currImg.src = "./uploads/" + this.file.name;
       this.jsonfiles[this.currImg.name] = this.currImg;

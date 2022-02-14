@@ -51,89 +51,22 @@
             <v-btn
               v-if="(name != '') & (currImg != null)"
               color="primary"
-              @click="refreshImg(false)"
+              @click="previewImg()"
               >استعراض التصميم</v-btn
             >
             <v-btn
               v-if="(name != '') & (currImg != null)"
               color="primary"
-              @click="refreshImg(true)"
+              @click="downloadImg()"
               >تنزيل التصميم</v-btn
             >
           </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
-    <!-- <v-row align="center" justify="center">
-      <v-col cols="10" xs="10" md="8" lg="4" xl="4">
-        <v-card class="elevation-12">
-          <v-img v-if="loading" :src="loadingSrc"></v-img>
-          <v-img
-            v-if="!loading & (src != null)"
-            id="display"
-            :src="src"
-          ></v-img>
-        </v-card>
-        <v-card v-show="warn" class="elevation-12">
-          <p id="warn" v-if="!loading & (src != null)">
-            في حال تم تنزيل الملف بإسم document قم بإعادة التسمية إلى
-            document.png
-          </p>
-        </v-card>
-      </v-col>
-    </v-row>
 
-    <v-row align="center" justify="center" fluid>
-      <v-col cols="12">
-        <v-toolbar color="primary" dark flat>
-          <v-spacer></v-spacer>
-          <v-toolbar-title>
-            <h1>اختر تصميم</h1>
-          </v-toolbar-title>
-          <v-spacer></v-spacer>
-        </v-toolbar>
-        <v-row align="center" justify="center">
-          <v-tabs show-arrows centered center-active>
-            <v-tab @click="chooseType('الكل')">الكل</v-tab>
-            <template v-for="t in types">
-              <v-tab :key="t" @click="chooseType(t)">{{ t }}</v-tab>
-            </template>
-          </v-tabs>
-        </v-row>
-        <v-row align="center" justify="center">
-          <template
-            v-for="img in Object.values(imgs).filter(
-              (k) => k.type == currType || currType == 'الكل'
-            )"
-          >
-            <v-col :key="img.name" cols="12" xs="12" md="6" lg="4" xl="3">
-              <v-card class="elevation-12">
-                <v-img
-                  :id="img.name"
-                  :src="img.src.replace('uploads', 'thumbs')"
-                ></v-img>
-                <!-- <v-card-subtitle class="pb-0">{{
-                  img.name.split(".")[0]
-                }}</v-card-subtitle>
-                <v-card-actions>
-                  <v-btn color="green" text @click="chooseImg(img.name)"
-                    >اختر</v-btn
-                  >
-                </v-card-actions>
-              </v-card>
-            </v-col>
-          </template>
-        </v-row>
-      </v-col>
-    </v-row> -->
-
-    <Preview v-show="picked" :src="currImg.src" />
-    <Designs
-      :imgs="imgs"
-      :types="types"
-      currType="الكل"
-      v-on:selected="selected"
-    />
+    <Preview v-show="picked" :src="imgPreview" :ratio="ratio" />
+    <Designs :imgs="imgs" :types="types" v-on:selected="selected" />
   </div>
 </template>
 
@@ -151,13 +84,14 @@ export default {
   data() {
     return {
       name: "",
-      loading: false,
-      loadingSrc: require("../assets/loading.gif"),
+      ratio: 1,
+      // loading: false,
+      // loadingSrc: require("../assets/loading.gif"),
       imgs: [],
       types: [],
       download: null,
-      currType: "الكل",
       canvas: null,
+      imgPreview: null,
       currImg: {
         name: "",
         src: null,
@@ -169,6 +103,7 @@ export default {
         r: null,
         g: null,
         b: null,
+        a: 1,
       },
       picked: false,
       fontType: "DriodKufi",
@@ -197,30 +132,16 @@ export default {
       });
   },
   methods: {
-    chooseType(type) {
-      this.currType = type;
-    },
     selected(res) {
       this.currImg = this.imgs[res.name];
+      this.imgPreview = this.currImg.src;
+      this.ratio = this.currImg.width / this.currImg.height;
       this.picked = true;
-      if (res.op == "remove") {
-        delete this.imgs[res.name];
-        this.deleteImg();
-      } else if (res.op == "edit") {
-        axios.get(this.currImg.src).then((response) => {
-          this.file = new File([response.data], this.currImg.name, {
-            type: "image/png",
-          });
-        });
-      }
+      setTimeout(
+        () => document.getElementById("display").scrollIntoView(),
+        500
+      );
     },
-    // chooseImg(i) {
-    //   document.getElementById("info").scrollIntoView();
-    //   this.loading = true;
-    //   this.currImg = this.imgs[i];
-    //   this.src = this.currImg.src;
-    //   this.loading = false;
-    // },
     rgbToHex(rgb) {
       var hex = Number(rgb).toString(16);
       if (hex.length < 2) {
@@ -228,13 +149,8 @@ export default {
       }
       return hex;
     },
-    async refreshImg(download) {
+    async previewImg() {
       if (!this.currImg) return;
-      if (download & (this.canvas != null)) {
-        this.downloadImg();
-        return;
-      }
-      // this.loading = true;
       var img = await loadImage(this.currImg.src);
       img.width = img.width / 3;
       img.height = img.height / 3;
@@ -248,27 +164,26 @@ export default {
         "#" +
         this.rgbToHex(this.currImg.r) +
         this.rgbToHex(this.currImg.g) +
-        this.rgbToHex(this.currImg.b);
+        this.rgbToHex(this.currImg.b) +
+        this.rgbToHex(parseFloat(this.currImg.a) * 255);
       ctx.fillText(
         this.name,
         (img.width * this.currImg.textX) / this.currImg.width,
         (img.height * this.currImg.textY) / this.currImg.height
       );
-      this.currImg.src = this.canvas.toDataURL("image/png");
-      this.loading = false;
+      this.imgPreview = this.canvas.toDataURL("image/png");
+      // this.loading = false;
       setTimeout(
         () => document.getElementById("display").scrollIntoView(),
         500
       );
-      if (download) this.downloadImg();
+      // if (download) this.downloadImg();
+      return this.imgPreview;
     },
-    downloadImg() {
+    async downloadImg() {
       var link = document.createElement("a");
-      link.setAttribute(
-        "download",
-        this.currImg.name.split(".")[0] + "-" + this.name + ".png"
-      );
-      link.href = this.currIm.src;
+      link.setAttribute("download", this.name + ".png");
+      link.href = await this.previewImg();
       link.target = "_blank";
       document.body.appendChild(link);
       link.click();

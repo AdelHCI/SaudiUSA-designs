@@ -34,10 +34,10 @@ foreach ($dirfiles as $i) {
         imagecopyresized($thumb, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
 
         $newFileName = "thumbs/" . $i;
-        echo $newFileName;
-        if ($newFileName) {
+        echo "Created thumbnail for file " . $newFileName . ".<br>";
+        if ($extension  == "jpeg" || $extension  == "jpg") {
             imagejpeg($thumb, $newFileName, 80);
-        } else if ($newFileName) {
+        } else if ($extension  == "png") {
             imagepng($thumb, $newFileName, 8);
         }
 
@@ -47,4 +47,5 @@ foreach ($dirfiles as $i) {
     }
 }
 
+echo "Finished creating thumbnails.<br>";
 exit;

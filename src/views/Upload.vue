@@ -38,7 +38,7 @@
           </template>
         </v-tabs>
       </v-row>
-      <v-tabs-items v-model="tab">
+      <v-tabs-items v-model="tab" touchless>
         <v-tab-item>
           <UploadForm
             :upload="true"
@@ -128,6 +128,7 @@ export default {
         r: null,
         g: null,
         b: null,
+        a: 1,
       },
       jsonfiles: [],
       types: [],
@@ -174,14 +175,16 @@ export default {
         r: null,
         g: null,
         b: null,
+        a: null,
       };
+
       this.file = null;
     },
     dialogMsg(res) {
       this.clear();
       this.dialogMessage = res.msg;
       this.dialog = true;
-      console.console.log(res);
+      console.log(res);
       if (res.jsonfiles) this.jsonfiles = res.jsonfiles;
       if (res.types) this.types = res.types;
       this.currType = "الكل";

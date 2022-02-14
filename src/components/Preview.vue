@@ -1,8 +1,21 @@
 <template>
   <v-row v-if="src != null" align="center" justify="center">
-    <v-col cols="12" align="center" justify="center">
+    <v-col
+      cols="12"
+      xs="12"
+      md="6"
+      lg="6"
+      xl="4"
+      align="center"
+      justify="center"
+    >
       <v-card class="elevation-12" id="info">
-        <v-img :lazy-src="loadingSrc" :src="src"></v-img>
+        <v-img
+          id="display"
+          :lazy-src="loadingSrc"
+          :src="src"
+          :aspect-ratio="ratio"
+        ></v-img>
       </v-card>
       <v-card v-show="warn" class="elevation-12">
         <p id="warn">
@@ -18,6 +31,7 @@ export default {
   name: "Preview",
   props: {
     src: String,
+    ratio: Number,
   },
   data() {
     return {
@@ -57,6 +71,7 @@ export default {
 
 img {
   display: block;
+  /* width: 70%; */
   margin: auto;
 }
 .card {

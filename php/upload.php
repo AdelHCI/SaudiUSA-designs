@@ -43,10 +43,11 @@ $extension = pathinfo($filename, PATHINFO_EXTENSION);
 
 // Check extension
 if (in_array(strtolower($extension), $valid_extensions)) {
+    print_r($_FILES);
     // Upload file
     if (list($width, $height) = getimagesize($_FILES["file"]["tmp_name"])) {
-        $filename = $_FILES["file"]["tmp_name"];
-        $file = "uploads/" . $filename;
+        print_r(getimagesize($_FILES["file"]["tmp_name"]));
+        $file = "uploads/" . $_FILES['file']['name'];
         move_uploaded_file($_FILES['file']['tmp_name'], $file);
         $imgRatio = $width / $height;
         $newWidth = 500;
@@ -59,11 +60,13 @@ if (in_array(strtolower($extension), $valid_extensions)) {
             $thumb = imagecreatetruecolor($newWidth, $newHeight);
             $source = imagecreatefrompng($file);
         }
+        imageinterlace($thumb, true);
         imagecopyresized($thumb, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-        $newFileName = "thumbs/" . $filename;
-        if ($newFileName) {
+        $newFileName = "thumbs/" . $_FILES['file']['name'];
+        $extension = pathinfo($newFileName, PATHINFO_EXTENSION);
+        if ($extension  == "jpeg" || $extension  == "jpg") {
             imagejpeg($thumb, $newFileName, 80);
-        } else if ($newFileName) {
+        } else if ($extension  == "png") {
             imagepng($thumb, $newFileName, 8);
         }
 
@@ -72,7 +75,8 @@ if (in_array(strtolower($extension), $valid_extensions)) {
 
         echo 1;
     } else {
-        echo 0;
+        print_r(getimagesize($_FILES["file"]["tmp_name"]));
+        echo -1;
     }
 } else {
     echo 0;

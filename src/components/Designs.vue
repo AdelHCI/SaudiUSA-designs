@@ -22,7 +22,7 @@
         (k) => k.type == currType || currType == 'الكل'
       )"
     >
-      <v-col :key="img.name" cols="12" xs="12" md="6" lg="6" xl="4">
+      <v-col :key="img.name" sm="4" cols="8" md="4" lg="4" xl="4">
         <v-card class="elevation-12">
           <v-img
             :lazy-src="loadingSrc"
@@ -32,6 +32,12 @@
           <v-card-actions>
             <v-btn v-if="remove" color="red" text @click="removeImg(img.name)"
               >احذف</v-btn
+            ><v-btn
+              v-else-if="edit"
+              color="green"
+              text
+              @click="editImg(img.name)"
+              >اختر</v-btn
             ><v-btn v-else color="green" text @click="chooseImg(img.name)"
               >اختر</v-btn
             >
@@ -50,12 +56,13 @@ export default {
     edit: Boolean,
     types: Object,
     imgs: Object,
-    currType: String,
+    // currType: String,
   },
   data() {
     return {
-      remove: false,
-      edit: false,
+      // remove: false,
+      // edit: false,
+      currType: "الكل",
       mode: this.remove ? "للحذف" : this.edit ? "للتعديل" : "",
       loadingSrc: require("../assets/loading.gif"),
       currImg: null,
@@ -70,6 +77,10 @@ export default {
       this.currType = type;
     },
     chooseImg(name) {
+      // document.getElementById("info").scrollIntoView();
+      this.$emit("selected", { name: name });
+    },
+    editImg(name) {
       // document.getElementById("info").scrollIntoView();
       this.$emit("selected", { name: name, op: "edit" });
     },
