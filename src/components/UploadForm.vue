@@ -174,7 +174,7 @@ export default {
       }
       this.loading = true;
       this.formData.append("file", this.file);
-      console.log(this.file);
+      // console.log(this.file);
       this.currImg.name = this.file.name;
       this.currImg.src = "./uploads/" + this.file.name;
       this.jsonfiles[this.currImg.name] = this.currImg;
@@ -183,11 +183,11 @@ export default {
           Object.values(this.jsonfiles).filter((f) => f.type == k).length > 0
       );
       // if (this.types.findIndex((t) => t == this.currImg.type) == -1) {
-      console.log(this.types);
+      // console.log(this.types);
       this.types.push(this.currImg.type);
-      console.log(this.types);
+      // console.log(this.types);
       this.types = [...new Set(this.types)];
-      console.log(this.types);
+      // console.log(this.types);
       // } else {
       //   console.log(this.currImg.type);
       // }
@@ -216,12 +216,14 @@ export default {
         .then(function(res) {
           self.progress = 100;
           self.loading = false;
+          let ret = "تم " + self.mode + " الملف";
+          if (res != 1) ret = res;
           self.$emit("dialogMsg", {
-            msg: "تم " + self.mode + " الملف",
+            msg: ret,
             jsonfiles: self.jsonfiles,
             types: self.types,
           });
-          console.log(res);
+          // console.log(res);
         })
         .catch(function(res) {
           self.loading = false;

@@ -184,7 +184,7 @@ export default {
       this.clear();
       this.dialogMessage = res.msg;
       this.dialog = true;
-      console.log(res);
+      // console.log(res);
       if (res.jsonfiles) this.jsonfiles = res.jsonfiles;
       if (res.types) this.types = res.types;
       this.currType = "الكل";
