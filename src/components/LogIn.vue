@@ -27,7 +27,6 @@
                 type="password"
                 :rules="pwdErr"
                 label="كلمة السر"
-                :error-messages="pwdMsg"
                 v-model="pwd"
               ></v-text-field>
               <v-btn color="success" class="mr-4" @click="logIn"
