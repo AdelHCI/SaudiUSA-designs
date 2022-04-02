@@ -27,6 +27,7 @@
                 type="password"
                 :rules="pwdErr"
                 label="كلمة السر"
+                :error-messages="pwdMsg"
                 v-model="pwd"
               ></v-text-field>
               <v-btn color="success" class="mr-4" @click="logIn"
@@ -131,7 +132,7 @@ export default {
           if (res.data == -1) this.pwdMsg = "كلمة السر غير صحيحة";
           else if (res.data == 0) this.pwdMsg = "بريدك الالكتروني غير صحيح";
           else if (res.data == 2) this.verify = true;
-          else this.$emit("loggedIn", [true, res.data]);
+          else if (res.data == 1) this.$emit("loggedIn", [true, res.data]);
         })
         .catch((res) => {
           console.log(res);
