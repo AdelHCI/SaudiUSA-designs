@@ -185,7 +185,6 @@ export default {
       this.dialogMessage = res.msg;
       this.dialog = true;
       if (res.res == 1) {
-        // console.log(res);
         if (res.jsonfiles) this.jsonfiles = res.jsonfiles;
         if (res.types) this.types = res.types;
       } else this.$router.push("/");
@@ -220,6 +219,7 @@ export default {
         })
         .then((res) => {
           this.loggedIn = parseInt(res.data) != -1;
+          // if (!this.loggedIn) this.$router.push("login");
           this.username = res.data[1];
           this.userrole = res.data[0];
           this.admin = this.userrole == "مشرف";
@@ -255,44 +255,6 @@ export default {
           console.log(res);
         });
     },
-    // uploadImg() {
-    //   if (!this.valid) {
-    //     document
-    //       .querySelector(".v-messages.error--text:first-of-type")
-    //       .scrollIntoView();
-    //     return;
-    //   }
-    //   this.loading = true;
-    //   this.formData.append("file", this.file);
-    //   this.currImg.name = this.file.name;
-    //   this.currImg.src = "./uploads/" + this.file.name;
-    //   this.jsonfiles[this.currImg.name] = this.currImg;
-    //   if (!this.types.find((t) => t != this.type)) {
-    //     this.types.push(this.type);
-    //   }
-
-    //   this.formData.append("json", JSON.stringify(this.jsonfiles));
-    //   this.formData.append("types", JSON.stringify(this.types));
-    //   let self = this;
-    //   axios
-    //     .post("upload.php", this.formData, {
-    //       headers: {
-    //         "Content-Type": "multipart/form-data",
-    //       },
-    //     })
-    //     .then(function (res) {
-    //       self.loading = false;
-    //       self.dialog = true;
-    //       self.dialogMessage = "تم رفع/تعديل الملف";
-    //       console.log(res);
-    //     })
-    //     .catch(function (res) {
-    //       self.fail = true;
-    //       self.dialog = true;
-    //       self.dialogMessage = "فشلت عملية الرفع/التعديل";
-    //       console.log(res);
-    //     });
-    // },
   },
 };
 </script>

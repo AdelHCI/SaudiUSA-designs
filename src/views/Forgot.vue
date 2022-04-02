@@ -4,7 +4,7 @@
       <v-col cols="10" sm="10" md="8 " lg="6" xl="4">
         <v-card class="elevation-12">
           <v-toolbar color="primary" dark flat>
-            <v-toolbar-title>تسجيل حساب</v-toolbar-title>
+            <v-toolbar-title>تغيير كلمة السر</v-toolbar-title>
             <v-spacer></v-spacer>
             <v-tooltip bottom>
               <template v-slot:activator="{ on }">
@@ -19,37 +19,23 @@
             <v-form v-model="valid">
               <v-text-field
                 label="بريدك الالكتروني"
-                :prepend-icon="mdiEmail"
                 :rules="emailErr"
                 v-model="username"
               ></v-text-field>
               <v-text-field
-                v-if="!verify"
-                :prepend-icon="mdiLock"
-                :append-icon="showpass ? mdiEye : mdiEyeOff"
-                :type="showpass ? 'text' : 'password'"
-                @click:append="showpass = !showpass"
-                label="كلمة السر"
+                v-if="verify"
+                type="password"
+                label="كلمة السر الجديدة"
                 :rules="pwdErr"
                 v-model="pwd"
               ></v-text-field>
               <v-text-field
-                v-if="!verify"
-                :prepend-icon="mdiLock"
-                :append-icon="showpass ? mdiEye : mdiEyeOff"
-                :type="showpass ? 'text' : 'password'"
-                @click:append="showpass = !showpass"
-                label="تأكيد كلمة السر"
+                v-if="verify"
+                type="password"
+                label="تأكيد كلمة السر الجديدة"
                 :rules="cpwdErr"
                 v-model="cpwd"
               ></v-text-field>
-              <v-btn
-                color="primary"
-                v-if="!verify"
-                @click="register"
-                :disabled="!valid"
-                >سجل</v-btn
-              >
               <v-text-field
                 v-if="verify"
                 label="رمز التوثيق"
@@ -57,12 +43,8 @@
                 :rules="codeErr"
                 v-model="code"
               ></v-text-field>
-              <v-btn
-                color="primary"
-                v-if="verify"
-                @click="verifyCode"
-                :disabled="!valid"
-                >وثق الحساب</v-btn
+              <v-btn color="primary" @click="reset" :disabled="!valid"
+                >تغيير كلمة السر</v-btn
               >
             </v-form>
           </v-card-text>
@@ -73,23 +55,18 @@
 </template>
 
 <script>
-import { mdiEmail, mdiLock, mdiEyeOff, mdiEye } from "@mdi/js";
 import axios from "axios";
 export default {
-  name: "Upload",
+  name: "Forgot",
   props: {
     user_name: String,
   },
   data() {
     return {
-      showpass: false,
-      mdiEyeOff: mdiEyeOff,
-      mdiEye: mdiEye,
-      mdiEmail: mdiEmail,
-      mdiLock: mdiLock,
       username: this.user_name ? this.user_name : "",
       pwd: "",
       cpwd: "",
+      valid: false,
       emailErr: [
         (value) => !!value,
         (value) =>
@@ -110,7 +87,6 @@ export default {
         (value) => !!value,
         (value) => value == this.pwd || "يجب أن يكون التأكيد مطابق لكلمة السر",
       ],
-      valid: false,
       codeErr: [(value) => !!value],
       code: null,
       codeMsg: "تم إرسال رمز التوثيق على بريدك",
@@ -119,72 +95,26 @@ export default {
     };
   },
   methods: {
-    register() {
-      if (!this.valid) {
-        console.log("invalid inputs");
-        return;
-      }
-      this.formData.append("username", this.username);
-      this.formData.append("pwd", this.pwd);
-      axios
-        .post("register.php", this.formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        })
-        .then((res) => {
-          console.log(res.data);
-          if (res.data == 1) {
-            this.verify = true;
-            // this.$emit("registered", [{username:this.username}]);
-            this.$router.push({
-              name: "login",
-              params: { username: this.username },
-            });
-          }
-          if (res.data == -1) {
-            this.$router.push({
-              name: "login",
-              params: {
-                username: this.username,
-                forgotMsg:
-                  "حسابك مسجل سابقاً. الرجاء تسجيل الدخول أو إعادة تعيين كلمة السر",
-              },
-            });
-            this.$emit("registered", [
-              {
-                username: this.username,
-                forgotMsg:
-                  "حسابك مسجل سابقاً. الرجاء تسجيل الدخول أو إعادة تعيين كلمة السر",
-              },
-            ]);
-
-            this.$router.push("uploadfile", {
-              forgotMsg:
-                "حسابك مسجل سابقاً. الرجاء تسجيل الدخول أو إعادة تعيين كلمة السر",
-            });
-          }
-        })
-        .catch((res) => {
-          console.log("FAILURE!!");
-          console.log(res);
-        });
-    },
-    verifyCode() {
+    reset() {
       this.formData.append("username", this.username);
       this.formData.append("code", this.code);
+      const self = this;
+      if (this.verify) {
+        this.formData.append("pwd", this.pwd);
+        this.formData.append("cpwd", this.cpwd);
+      }
       axios
-        .post("verify.php", this.formData, {
+        .post("forgot.php", this.formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         })
         .then(function(res) {
           console.log(res.data);
-          if (res.data == 1)
-            this.$emit("registered", [
-              { username: this.username, forgotMsg: "" },
-            ]);
+          if (res.data == 2) self.verify = true;
+          else if (res.data == 1) self.$emit("reset", self.username);
+          else if (res.data == 0) self.codeMsg = "رمز التوثيق غير صحيح";
+          else if (res.data == -1) self.codeMsg = "لم تدخل كلمة سر";
         })
         .catch(function(res) {
           console.log("FAILURE!! " + res);
