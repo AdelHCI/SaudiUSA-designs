@@ -152,8 +152,8 @@ export default {
     async previewImg() {
       if (!this.currImg) return;
       var img = await loadImage(this.currImg.src);
-      img.width = img.width / 3;
-      img.height = img.height / 3;
+      // img.width = img.width / 3;
+      // img.height = img.height / 3;
       this.canvas = createCanvas(img.width, img.height);
       const ctx = this.canvas.getContext("2d");
       const scale = img.width / this.currImg.width;

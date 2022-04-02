@@ -184,9 +184,11 @@ export default {
       this.clear();
       this.dialogMessage = res.msg;
       this.dialog = true;
-      // console.log(res);
-      if (res.jsonfiles) this.jsonfiles = res.jsonfiles;
-      if (res.types) this.types = res.types;
+      if (res.res == 1) {
+        // console.log(res);
+        if (res.jsonfiles) this.jsonfiles = res.jsonfiles;
+        if (res.types) this.types = res.types;
+      } else this.$router.push("/");
       this.currType = "الكل";
     },
     selected(res) {

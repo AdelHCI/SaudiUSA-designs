@@ -217,9 +217,11 @@ export default {
           self.progress = 100;
           self.loading = false;
           let ret = "تم " + self.mode + " الملف";
-          if (res != 1) ret = res;
+          if (res.data != 1)
+            ret = "فشلت عملية ال" + self.mode + ":\n" + res.data;
           self.$emit("dialogMsg", {
             msg: ret,
+            res: res.data,
             jsonfiles: self.jsonfiles,
             types: self.types,
           });

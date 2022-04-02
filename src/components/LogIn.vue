@@ -14,38 +14,42 @@
             <v-spacer></v-spacer>
           </v-toolbar>
           <v-card-text>
-            <v-text-field
-              :prepend-icon="mdiEmail"
-              label="بريدك الالكتروني"
-              type="text"
-              v-model="username"
-            ></v-text-field>
-            <v-text-field
-              :prepend-icon="mdiLock"
-              type="password"
-              label="كلمة السر"
-              :error-messages="pwdMsg"
-              v-model="pwd"
-            ></v-text-field>
-            <v-btn color="success" class="mr-4" @click="logIn"
-              >تسجيل الدخول</v-btn
-            >
-            <v-btn color="primary" class="mr-4" @click="forgot = !forgot"
-              >نسيت كلمة السر</v-btn
-            >
-            <v-btn color="primary" class="mr-4" @click="register = !register"
-              >إنشاء حساب</v-btn
-            >
-            <v-text-field
-              v-if="verify"
-              label="رمز التوثيق"
-              :messages="codeMsg"
-              :rules="codeErr"
-              v-model="code"
-            ></v-text-field>
-            <v-btn color="primary" v-if="verify" @click="verifyCode"
-              >وثق الحساب</v-btn
-            >
+            <v-form v-model="valid">
+              <v-text-field
+                :prepend-icon="mdiEmail"
+                label="بريدك الالكتروني"
+                type="text"
+                :rules="emailErr"
+                v-model="username"
+              ></v-text-field>
+              <v-text-field
+                :prepend-icon="mdiLock"
+                type="password"
+                :rules="pwdErr"
+                label="كلمة السر"
+                :error-messages="pwdMsg"
+                v-model="pwd"
+              ></v-text-field>
+              <v-btn color="success" class="mr-4" @click="logIn"
+                >تسجيل الدخول</v-btn
+              >
+              <v-btn color="primary" class="mr-4" @click="forgot = !forgot"
+                >نسيت كلمة السر</v-btn
+              >
+              <v-btn color="primary" class="mr-4" @click="register = !register"
+                >إنشاء حساب</v-btn
+              >
+              <v-text-field
+                v-if="verify"
+                label="رمز التوثيق"
+                :messages="codeMsg"
+                :rules="codeErr"
+                v-model="code"
+              ></v-text-field>
+              <v-btn color="primary" v-if="verify" @click="verifyCode"
+                >وثق الحساب</v-btn
+              >
+            </v-form>
           </v-card-text>
         </v-card>
       </v-col>
@@ -67,12 +71,30 @@ export default {
   data() {
     return {
       username: "",
+      valid: false,
       mdiEmail: mdiEmail,
       mdiLock: mdiLock,
       pwd: "",
       register: false,
       forgot: false,
       pwdMsg: "",
+      emailErr: [
+        (value) => !!value,
+        (value) =>
+          /[a-zA-Z]+.*[a-zA-Z]*@saudiusa.com/.test(value) ||
+          "البريد الإلكتروني يجب أن يكون @saudiusa.com",
+      ],
+      pwdErr: [
+        (value) => !!value,
+        (value) =>
+          /[a-z]+/.test(value) || "يجب أن تحتوي كلمة السر على حرف صغير",
+        (value) =>
+          /[A-Z]+/.test(value) || "يجب أن تحتوي كلمة السر على حرف كبير",
+        (value) => /[0-9]+/.test(value) || "يجب أن تحتوي كلمة السر على رقم",
+        (value) => /\W|_+/.test(value) || "يجب أن تحتوي كلمة السر على رمز",
+        (value) =>
+          value.length >= 8 || "يجب أن تكون كلمة السر على الأقل 8 خانات",
+      ],
       codeErr: [(value) => !!value],
       code: null,
       codeMsg: "تم إرسال رمز التوثيق على بريدك",
@@ -92,6 +114,12 @@ export default {
       this.pwdMsg = "قم بإدخال كلمة السر الجديدة";
     },
     logIn() {
+      if (!this.valid) {
+        document
+          .querySelector(".v-messages.error--text:first-of-type")
+          .scrollIntoView();
+        return;
+      }
       this.formData.append("username", this.username);
       this.formData.append("pwd", this.pwd);
       axios
